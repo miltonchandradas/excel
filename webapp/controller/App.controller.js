@@ -12,7 +12,7 @@ sap.ui.define(
         this._mainModel = this.getOwnerComponent().getModel();
       },
 
-      onExcelDownload: async function (oEvent) {
+      onExcelDownload: function (oEvent) {
         // Remove any existing DOM artifacts...
         let domHyperlink = document.getElementById("domHyperlink");
         if (domHyperlink) domHyperlink.remove();
@@ -22,7 +22,7 @@ sap.ui.define(
 
         // Create DOM table
         // Populate and format DOM table with data
-        let table = await excelUtils.createDOMTable(this);
+        let table = excelUtils.createDOMTable(this);
         
         // Write DOM table to Excel
         excelUtils.writeToExcel(table, "northwind")

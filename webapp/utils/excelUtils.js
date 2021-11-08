@@ -12,7 +12,7 @@ sap.ui.define([], function () {
 			return table;
 		},
 
-        createDOMTable: async function (controller) {
+        createDOMTable: function (controller) {
             let table = this._createTable("domTable");
             return table;
         },
