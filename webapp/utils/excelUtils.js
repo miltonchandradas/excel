@@ -11,6 +11,23 @@ sap.ui.define(["com/sap/excel/utils/odataUtils"], function (odataUtils) {
       return table;
     },
 
+    _createHeaderSection: function () {
+      let headerTbody = document.createElement("tbody");
+      headerTbody.style.border = "1px solid black";
+      let headerTr = headerTbody.insertRow();
+      let headerCell0 = headerTr.insertCell();
+      headerCell0.innerHTML = `<b>OData Service:</b> Northwind OData Service`;
+      headerCell0.colSpan = 2;
+      headerTr = headerTbody.insertRow();
+      let headerCell1 = headerTr.insertCell();
+      headerCell1.innerHTML = `Excel Download with formatting in SAPUI5`;
+      headerCell1.colSpan = 2;
+      headerTr = headerTbody.insertRow();
+      let headerCell2 = headerTr.insertCell();
+
+      return headerTbody;
+    },
+
     _addColumnHeaders: function (table, columnHeaders) {
       let tr = document.createElement("tr");
       tr.style.color = "#fff";
@@ -55,7 +72,7 @@ sap.ui.define(["com/sap/excel/utils/odataUtils"], function (odataUtils) {
             break;
           }
           case "ProductName": {
-            let cellValue = `${result.ProductName}<br>`;
+            let cellValue = `<b>${result.ProductName}</b><br>`;
             cells[1].innerHTML = cellValue;
             break;
           }
@@ -100,6 +117,11 @@ sap.ui.define(["com/sap/excel/utils/odataUtils"], function (odataUtils) {
 
     createDOMTable: async function (controller) {
       let table = this._createTable("domTable");
+
+      // Add the header section on top...
+      let headerSection = this._createHeaderSection();
+      table.appendChild(headerSection);
+
       let columnHeaders = [
         "Product ID",
         "Product Name",
