@@ -1,84 +1,172 @@
-sap.ui.define([], function () {
+sap.ui.define(["com/sap/excel/utils/odataUtils"], function (odataUtils) {
+  "use strict";
 
-	"use strict";
+  return {
+    _createTable: function (id) {
+      let table = document.createElement("table");
+      table.id = id;
+      table.style.cssText =
+        "font-family: sans-serif; font-size: 0.9em; border: 1px solid rgb(174, 215, 255);";
 
-	return {
+      return table;
+    },
 
-        _createTable: function (id) {
-			let table = document.createElement("table");
-			table.id = id;
-			table.style.cssText = "font-family: sans-serif; font-size: 0.9em; border: 1px solid rgb(174, 215, 255);";
+    _addColumnHeaders: function (table, columnHeaders) {
+      let tr = document.createElement("tr");
+      tr.style.color = "#fff";
+      tr.style.textAlign = "left";
+      tr.style.fontWeight = "bold";
 
-			return table;
-        },
-        
-        _addColumnHeaders: function (table, columnHeaders) {
+      // Add the column headers
+      columnHeaders.forEach((header) => {
+        let th = document.createElement("th");
+        th.innerHTML = header;
+        th.style.backgroundColor = "rgb(40, 110, 180)";
+        th.style.padding = "12px 15px";
+        th.style.height = "40px";
+        th.style.border = "1px solid rgb(174, 215, 255)";
+        tr.appendChild(th);
+      });
 
-			let tr = document.createElement("tr");
-			tr.style.color = "#fff";
-			tr.style.textAlign = "left";
-			tr.style.fontWeight = "bold";
+      table.appendChild(tr);
 
-			// Add the column headers
-			columnHeaders.forEach((header) => {
-				let th = document.createElement("th");
-				th.innerHTML = header;
-				th.style.backgroundColor = "rgb(40, 110, 180)";
-				th.style.padding = "12px 15px";
-				th.style.height = "40px";
-				th.style.border = "1px solid rgb(174, 215, 255)";
-				tr.appendChild(th);
-			});
+      return tr;
+    },
 
-			table.appendChild(tr);
+    _setCellStyle: function (cell) {
+      cell.style.padding = "12px 15px";
+      cell.style.border = "1px solid rgb(174, 215, 255)";
 
-			return tr;
-		},
+      cell.style.textAlign = "center";
+      cell.style.verticalAlign = "middle";
+    },
 
-        createDOMTable: function (controller) {
-            let table = this._createTable("domTable");
-            let columnHeaders = [
-                "Product Name",
-                "Supplier ID",
-                "Category ID",
-                "Quantity Per Unit",
-                "Unit Price",
-                "Units In Stock",
-                "Discontinued"
+    _insertRowValues: function (fieldNames, cells, index, result) {
+      fieldNames.forEach((fieldName) => {
+        switch (fieldName) {
+          case "ProductID": {
+            let cellValue = `${result.ProductID}<br>`;
+            cells[0].innerHTML = cellValue;
 
-            ];
-            let tr = this._addColumnHeaders(table, columnHeaders);
+            if (index % 2 === 0) {
+              cells.forEach((cell) => (cell.style.backgroundColor = "#f0f0f0"));
+            }
 
-            return table;
-        },
+            break;
+          }
+          case "ProductName": {
+            let cellValue = `${result.ProductName}<br>`;
+            cells[1].innerHTML = cellValue;
+            break;
+          }
+          case "SupplierID": {
+            let cellValue = `${result.SupplierID}<br>`;
+            cells[2].innerHTML = cellValue;
+            break;
+          }
+          case "CategoryID": {
+            let cellValue = `${result.CategoryID}<br>`;
+            cells[3].innerHTML = cellValue;
+            break;
+          }
+          case "QuantityPerUnit": {
+            let cellValue = `${result.QuantityPerUnit}<br>`;
+            cells[4].innerHTML = cellValue;
+            break;
+          }
+          case "UnitPrice": {
+            let cellValue = `${result.UnitPrice}<br>`;
+            cells[5].innerHTML = cellValue;
+            break;
+          }
+          case "UnitsInStock": {
+            let cellValue = `${result.UnitsInStock}<br>`;
+            cells[6].innerHTML = cellValue;
+            break;
+          }
+          case "Discontinued": {
+            let cellValue = `${
+              result.Discontinued ? "Discontinued" : "Available"
+            }<br>`;
+            if (result.Discontinued) cells[7].style.backgroundColor = "yellow";
+            cells[7].innerHTML = cellValue;
+            break;
+          }
+          default:
+            break;
+        }
+      });
+    },
 
-        writeToExcel: function (table, filename) {
+    createDOMTable: async function (controller) {
+      let table = this._createTable("domTable");
+      let columnHeaders = [
+        "Product ID",
+        "Product Name",
+        "Supplier ID",
+        "Category ID",
+        "Quantity Per Unit",
+        "Unit Price",
+        "Units In Stock",
+        "Discontinued",
+      ];
+      let tr = this._addColumnHeaders(table, columnHeaders);
 
-			let dataType = "application/vnd.ms-excel";
-			let tableHTML = table.outerHTML.replace(/ /g, "%20");
+      // Add JSON data as rows to the table
+      let tbody = document.createElement("tbody");
 
-			// Create download link element
-			let downloadLink = document.createElement("a");
-			downloadLink.id = "domHyperlink";
+      // Retrieve data from backend...
+      let data = await odataUtils.readFromBackend(
+        "Products",
+        controller._mainModel
+      );
 
-			document.body.appendChild(downloadLink);
+      if (data && data.results && data.results.length > 0) {
+        let fieldNames = Object.keys(data.results[0]);
 
-			if (navigator.msSaveOrOpenBlob) {
-				let blob = new Blob(["\ufeff", tableHTML], {
-					type: dataType
-				});
-				navigator.msSaveOrOpenBlob(blob, filename);
-			} else {
-				// Create a link to the file
-				downloadLink.href = "data:" + dataType + ", " + tableHTML;
+        data.results.forEach((result, index) => {
+          tr = tbody.insertRow();
 
-				// Setting the file name
-				downloadLink.download = filename;
+          let cells = [];
+          columnHeaders.forEach((columnHeader, i) => {
+            cells[i] = tr.insertCell();
+            this._setCellStyle(cells[i]);
+          });
 
-				//triggering the function
-				downloadLink.click();
-			}
-		},
+          this._insertRowValues(fieldNames, cells, index, result);
+        });
+      }
 
-    };
+      table.appendChild(tbody);
+
+      return table;
+    },
+
+    writeToExcel: function (table, filename) {
+      let dataType = "application/vnd.ms-excel";
+      let tableHTML = table.outerHTML.replace(/ /g, "%20");
+
+      // Create download link element
+      let downloadLink = document.createElement("a");
+      downloadLink.id = "domHyperlink";
+
+      document.body.appendChild(downloadLink);
+
+      if (navigator.msSaveOrOpenBlob) {
+        let blob = new Blob(["\ufeff", tableHTML], {
+          type: dataType,
+        });
+        navigator.msSaveOrOpenBlob(blob, filename);
+      } else {
+        // Create a link to the file
+        downloadLink.href = "data:" + dataType + ", " + tableHTML;
+
+        // Setting the file name
+        downloadLink.download = filename;
+
+        //triggering the function
+        downloadLink.click();
+      }
+    },
+  };
 });
