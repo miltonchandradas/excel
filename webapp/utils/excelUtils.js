@@ -63,11 +63,11 @@ sap.ui.define(
         cell.style.verticalAlign = "middle";
       },
 
-      _insertRowValues: function (fieldNames, cells, index, result) {
+      _insertRowValues: function (fieldNames, cells, index, product) {
         fieldNames.forEach((fieldName) => {
           switch (fieldName) {
             case "ProductID": {
-              let cellValue = `${result.ProductID}<br>`;
+              let cellValue = `${product.ProductID}<br>`;
               cells[0].innerHTML = cellValue;
 
               if (index % 2 === 0) {
@@ -79,42 +79,37 @@ sap.ui.define(
               break;
             }
             case "ProductName": {
-              let cellValue = `<b>${result.ProductName}</b><br>`;
+              let cellValue = `${product.ProductName}<br>`;
               cells[1].innerHTML = cellValue;
               break;
             }
             case "SupplierID": {
-              let cellValue = `${result.Supplier ? result.Supplier.CompanyName : result.SupplierID}<br>`;
+              let cellValue = `${product.CompanyName}<br>`;
               cells[2].innerHTML = cellValue;
               break;
             }
-            case "CategoryID": {
-              let cellValue = `${result.Category ? result.Category.CategoryName: result.CategoryID}<br>`;
+            case "QuantityPerUnit": {
+              let cellValue = `${product.QuantityPerUnit}<br>`;
               cells[3].innerHTML = cellValue;
               break;
             }
-            case "QuantityPerUnit": {
-              let cellValue = `${result.QuantityPerUnit}<br>`;
+            case "UnitPrice": {
+              let cellValue = `${product.UnitPrice}<br>`;
               cells[4].innerHTML = cellValue;
               break;
             }
-            case "UnitPrice": {
-              let cellValue = `${result.UnitPrice}<br>`;
-              cells[5].innerHTML = cellValue;
-              break;
-            }
             case "UnitsInStock": {
-              let cellValue = `${result.UnitsInStock}<br>`;
-              cells[6].innerHTML = cellValue;
+              let cellValue = `${product.UnitsInStock}<br>`;
+              cells[5].innerHTML = cellValue;
               break;
             }
             case "Discontinued": {
               let cellValue = `${
-                result.Discontinued ? "Discontinued" : "Available"
+                product.Discontinued ? "Discontinued" : "Available"
               }<br>`;
-              if (result.Discontinued)
-                cells[7].style.backgroundColor = "yellow";
-              cells[7].innerHTML = cellValue;
+              if (product.Discontinued)
+                cells[6].style.backgroundColor = "yellow";
+              cells[6].innerHTML = cellValue;
               break;
             }
             default:
@@ -131,8 +126,32 @@ sap.ui.define(
           controller._mainModel
         );
 
-        return data;
+        if (data && data.results && data.results.length > 1) {
+            data.results.forEach(result => {
+                result.CategoryName = result.Category.CategoryName ? result.Category.CategoryName : result.CategoryID;
+                result.CompanyName = result.Supplier.CompanyName ? result.Supplier.CompanyName : result.SupplierID;
+            });
+        }
+
+        if (data.results) return data.results;
+
+        return null;
       },
+
+      _insertCategory: function (key, table) {
+			let groupTbody = document.createElement("tbody");
+			let groupTr = groupTbody.insertRow();
+			groupTr.style.textAlign = "left";
+			let groupCell = groupTr.insertCell();
+			groupCell.colSpan = 7;
+			groupCell.style.backgroundColor = "rgb(201, 238, 242)";
+			groupCell.style.height = "30px";
+			groupCell.style.verticalAlign = "middle";
+
+			groupCell.innerHTML =
+				`<b>Category: </b>${key}`;
+			table.appendChild(groupTbody);
+		},
 
       createDOMTable: async function (controller) {
         let table = this._createTable("domTable");
@@ -145,7 +164,6 @@ sap.ui.define(
           "Product ID",
           "Product Name",
           "Supplier Company",
-          "Category",
           "Quantity Per Unit",
           "Unit Price",
           "Units In Stock",
@@ -153,29 +171,36 @@ sap.ui.define(
         ];
         let tr = this._addColumnHeaders(table, columnHeaders);
 
-        // Add JSON data as rows to the table
-        let tbody = document.createElement("tbody");
-
         // Retrieve data from backend...
-        let data = await this._getExpandedData(controller);
+        let products = await this._getExpandedData(controller);
+        if (!products) return table;
 
-        if (data && data.results && data.results.length > 0) {
-          let fieldNames = Object.keys(data.results[0]);
+          let fieldNames = Object.keys(products[0]);
+          dataManipulationUtils.sortByCategory(products);
+          let productsGroupedByCategory = dataManipulationUtils.groupByCategory(products);
 
-          data.results.forEach((result, index) => {
-            tr = tbody.insertRow();
+          productsGroupedByCategory.forEach((productsInSingleCategory, key) => {
 
-            let cells = [];
-            columnHeaders.forEach((columnHeader, i) => {
-              cells[i] = tr.insertCell();
-              this._setCellStyle(cells[i]);
+            this._insertCategory(key, table);
+
+            // Add JSON data as rows to the table
+            let tbody = document.createElement("tbody");
+
+            productsInSingleCategory.forEach((product, index) => {
+                tr = tbody.insertRow();
+
+                let cells = [];
+                columnHeaders.forEach((columnHeader, i) => {
+                cells[i] = tr.insertCell();
+                this._setCellStyle(cells[i]);
+                });
+
+                this._insertRowValues(fieldNames, cells, index, product);
             });
 
-            this._insertRowValues(fieldNames, cells, index, result);
-          });
-        }
+            table.appendChild(tbody);
 
-        table.appendChild(tbody);
+          });
 
         return table;
       },
