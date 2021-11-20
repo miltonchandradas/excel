@@ -67,7 +67,7 @@ sap.ui.define(
         fieldNames.forEach((fieldName) => {
           switch (fieldName) {
             case "ProductID": {
-              let cellValue = `${product.ProductID}<br>`;
+              let cellValue = `<b>${product.ProductID}</b><br>${product.ProductName}<br>`;
               cells[0].innerHTML = cellValue;
 
               if (index % 2 === 0) {
@@ -78,29 +78,24 @@ sap.ui.define(
 
               break;
             }
-            case "ProductName": {
-              let cellValue = `${product.ProductName}<br>`;
-              cells[1].innerHTML = cellValue;
-              break;
-            }
             case "SupplierID": {
               let cellValue = `${product.CompanyName}<br>`;
-              cells[2].innerHTML = cellValue;
+              cells[1].innerHTML = cellValue;
               break;
             }
             case "QuantityPerUnit": {
               let cellValue = `${product.QuantityPerUnit}<br>`;
-              cells[3].innerHTML = cellValue;
+              cells[2].innerHTML = cellValue;
               break;
             }
             case "UnitPrice": {
               let cellValue = `${product.UnitPrice}<br>`;
-              cells[4].innerHTML = cellValue;
+              cells[3].innerHTML = cellValue;
               break;
             }
             case "UnitsInStock": {
               let cellValue = `${product.UnitsInStock}<br>`;
-              cells[5].innerHTML = cellValue;
+              cells[4].innerHTML = cellValue;
               break;
             }
             case "Discontinued": {
@@ -108,8 +103,8 @@ sap.ui.define(
                 product.Discontinued ? "Discontinued" : "Available"
               }<br>`;
               if (product.Discontinued)
-                cells[6].style.backgroundColor = "yellow";
-              cells[6].innerHTML = cellValue;
+                cells[5].style.backgroundColor = "yellow";
+              cells[5].innerHTML = cellValue;
               break;
             }
             default:
@@ -143,7 +138,7 @@ sap.ui.define(
 			let groupTr = groupTbody.insertRow();
 			groupTr.style.textAlign = "left";
 			let groupCell = groupTr.insertCell();
-			groupCell.colSpan = 7;
+			groupCell.colSpan = 6;
 			groupCell.style.backgroundColor = "rgb(201, 238, 242)";
 			groupCell.style.height = "30px";
 			groupCell.style.verticalAlign = "middle";
@@ -162,7 +157,6 @@ sap.ui.define(
 
         let columnHeaders = [
           "Product ID",
-          "Product Name",
           "Supplier Company",
           "Quantity Per Unit",
           "Unit Price",
