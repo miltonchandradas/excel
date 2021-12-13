@@ -78,6 +78,7 @@ sap.ui.define(
 
               break;
             }
+            
             case "SupplierID": {
               let cellValue = `${product.CompanyName}<br>`;
               cells[1].innerHTML = cellValue;
@@ -106,6 +107,13 @@ sap.ui.define(
                 cells[5].style.backgroundColor = "yellow";
               cells[5].innerHTML = cellValue;
               break;
+            }
+            case "ReorderLevel": {
+                // For our current example, we will use this field to show an image since there is no field that contains the image...
+                // In the real world, you will have a field that contains the image...
+                let cellValue = this._getProuctImage();
+                cells[6].innerHTML = cellValue;
+                break;
             }
             default:
               break;
@@ -138,7 +146,7 @@ sap.ui.define(
 			let groupTr = groupTbody.insertRow();
 			groupTr.style.textAlign = "left";
 			let groupCell = groupTr.insertCell();
-			groupCell.colSpan = 6;
+			groupCell.colSpan = 7;
 			groupCell.style.backgroundColor = "rgb(201, 238, 242)";
 			groupCell.style.height = "30px";
 			groupCell.style.verticalAlign = "middle";
@@ -147,6 +155,10 @@ sap.ui.define(
 				`<b>Category: </b>${key}`;
 			table.appendChild(groupTbody);
 		},
+
+        _getProuctImage: function() {
+            return `<img src="https://via.placeholder.com/150/92c952" width="40" height="30" alt=""/><br>`;
+        },
 
       createDOMTable: async function (controller) {
         let table = this._createTable("domTable");
@@ -162,6 +174,7 @@ sap.ui.define(
           "Unit Price",
           "Units In Stock",
           "Discontinued",
+          "Product Image",
         ];
         let tr = this._addColumnHeaders(table, columnHeaders);
 
